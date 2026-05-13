@@ -1,0 +1,30 @@
+* {
+    margin:     0;
+    padding:    0;
+    box-sizing: border-box;
+}
+
+body {
+    background: transparent;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+}
+
+#bar {
+    width:         150px;
+    height:        10px;
+    background:    rgb(131, 1, 1);
+    border-radius: 0 0 8px 8px;
+    cursor:        pointer;
+    box-shadow:    0 2px 12px 2px rgb(15 15 15);
+}
+
+#panel {
+    display:    none;
+    width:      600px;
+    background: rgb(26, 26, 46);
+    color:      rgb(255, 255, 255);
+    padding:    16px;
+}

@@ -1,0 +1,9 @@
+{
+  "autoChangelog": true,
+  "defaultType": "patch",
+  "requireCleanWorkingDir": false,
+  "autoPush": true,
+  "defaultStageMode": "tracked",
+  "tagPrefix": "v",
+  "colors": true
+}
