@@ -5,20 +5,22 @@
 }
 
 body {
-    background: transparent;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    display: flex;
+    background:      transparent;
+    overflow:        hidden;
+    font-family:     Arial, sans-serif;
+    display:         flex;
     justify-content: center;
 }
 
 #bar {
     width:         150px;
     height:        10px;
-    background:    rgb(131, 1, 1);
+    background:    rgb(75 75 75 / .75);
     border-radius: 0 0 8px 8px;
     cursor:        pointer;
     box-shadow:    0 2px 12px 2px rgb(15 15 15);
+    transition:    top 333ms ease-in-out;
+    top:           0;
 }
 
 #panel {
