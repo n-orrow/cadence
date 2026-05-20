@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0] - 2026-05-20
+- feat: basic window with tray toggle and position persistence
+
+
 ## [0.2.1] - 2026-05-13
 - patch: update bar background colour
 

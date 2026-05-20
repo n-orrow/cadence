@@ -1,31 +1,34 @@
 const { app, BrowserWindow, screen, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
+const Store = require('electron-store');
 
 app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('no-sandbox');
 
-let mainWindow
-let tray
+const store = new Store();
+
+let mainWindow;
+let tray;
 
 function createWindow() {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width } = primaryDisplay.bounds
+    const { width, height } = primaryDisplay.bounds;
 
-    const barWidth = 170
-    const barHeight = 30
+    const windowWidth = 400;
+    const windowHeight = 500;
+
+    const x = store.get('windowX', Math.floor((width - windowWidth) / 2));
+    const y = store.get('windowY', Math.floor((height - windowHeight) / 2));
 
     mainWindow = new BrowserWindow({
-        width: barWidth,
-        height: barHeight,
-        x: Math.floor((width - barWidth) / 2),
-        y: 0,
-        frame: false,
-        transparent: true,
+        width: windowWidth,
+        height: windowHeight,
+        x,
+        y,
         alwaysOnTop: true,
         resizable: false,
-        movable: false,
         skipTaskbar: true,
         show: false,
-        thickFrame: false,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
@@ -33,13 +36,13 @@ function createWindow() {
     });
 
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-    mainWindow.on('blur', () => {
-        mainWindow.setAlwaysOnTop(true, 'screen-saver');
-        mainWindow.showInactive();
-    });
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
-    mainWindow.setVisibleOnAllWorkspaces(true);
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
+
+    mainWindow.on('moved', () => {
+        const [x, y] = mainWindow.getPosition();
+        store.set('windowX', x);
+        store.set('windowY', y);
+    });
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
@@ -48,18 +51,24 @@ function createWindow() {
 
 function createTray() {
     tray = new Tray(path.join(__dirname, '../../assets/tray-icon.png'));
+
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'Show Cadence', click: () => mainWindow.show() },
-        { type: 'separator' },
         { label: 'Settings', click: () => console.log('settings') },
         { type: 'separator' },
         { label: 'Quit', click: () => app.quit() }
     ]);
+
     tray.setToolTip('Cadence');
     tray.setContextMenu(contextMenu);
-}
 
-app.commandLine.appendSwitch('no-sandbox');
+    tray.on('click', () => {
+        if (mainWindow.isVisible()) {
+            mainWindow.hide();
+        } else {
+            mainWindow.show();
+        }
+    });
+}
 
 app.whenReady().then(() => {
     app.setAppUserModelId('dev.cadence.app');
