@@ -1,32 +1,15 @@
 * {
-    margin:     0;
-    padding:    0;
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    background:      transparent;
-    overflow:        hidden;
-    font-family:     Arial, sans-serif;
-    display:         flex;
-    justify-content: center;
-}
-
-#bar {
-    width:         150px;
-    height:        10px;
-    background:    rgb(75 75 75 / .75);
-    border-radius: 0 0 8px 8px;
-    cursor:        pointer;
-    box-shadow:    0 2px 12px 2px rgb(15 15 15);
-    transition:    top 333ms ease-in-out;
-    top:           0;
-}
-
-#panel {
-    display:    none;
-    width:      600px;
-    background: rgb(26, 26, 46);
-    color:      rgb(255, 255, 255);
-    padding:    16px;
+.app {
+    width: 100vw;
+    height: 100vh;
+    background: rgb(26 26 46 / 0.95);
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: white;
+    padding: 16px;
 }
