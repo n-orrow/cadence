@@ -3,6 +3,7 @@ const { ipcRenderer } = require('electron');
 const timerDisplay = document.querySelector('.timer');
 const phaseLabel = document.querySelector('.phase-label');
 const startBtn = document.querySelector('.btn-start');
+const DEV_MODE = true;
 
 const FOCUS_DURATION = 45 * 60;
 const BREAK_DURATION = 15 * 60;
@@ -22,9 +23,11 @@ function updateDisplay() {
     timerDisplay.textContent = formatTime(timeRemaining);
     phaseLabel.textContent = isBreak ? 'BREAK' : 'FOCUS';
     phaseLabel.style.color = isBreak ? 'var(--accent-break)' : 'var(--accent-focus)';
+    startBtn.classList.toggle('break', isBreak);
 }
 
 function startTimer() {
+    if (DEV_MODE) timeRemaining = 10;
     isRunning = true;
     startBtn.textContent = 'Pause';
 

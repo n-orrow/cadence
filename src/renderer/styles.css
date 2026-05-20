@@ -76,8 +76,13 @@
     cursor: pointer;
     transition: border-color 200ms ease, color 200ms ease;
 
-    &:hover {
+    &:not(.break):hover {
         border-color: var(--accent-focus);
         color: var(--accent-focus);
+    }
+
+    &.break:hover {
+        border-color: var(--accent-break);
+        color: var(--accent-break);
     }
 }
