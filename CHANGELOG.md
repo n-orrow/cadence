@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.0] - 2026-05-20
+- feat: grace period, skip confirmation and break flow
+
+
 ## [0.7.0] - 2026-05-20
 - feat: timer logic, phase switching and dynamic button states
 
