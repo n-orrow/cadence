@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.4.0] - 2026-05-20
+- feat: design tokens, fonts and icon setup
+
+
 ## [0.3.1] - 2026-05-20
 - patch: prevent window close, hide to tray instead
 
