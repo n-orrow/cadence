@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const {ipcRenderer} = require('electron');
 
 const timerScreen = document.querySelector('.timer-screen');
 const timerDisplay = document.querySelector('.timer');
@@ -44,11 +44,13 @@ function renderScreen(screen) {
         if (isGrace) {
             controls.innerHTML = `
                 <button class="btn-extend" ${hasExtended ? 'disabled' : ''}>+5 min</button>
-                <button class="btn-skip">Skip Break</button>
+                <button class="btn-start-break">Start</button>
+                <button class="btn-skip">Skip</button>
             `;
             if (!hasExtended) {
                 document.querySelector('.btn-extend').addEventListener('click', extendFocus);
             }
+            document.querySelector('.btn-start-break').addEventListener('click', startBreak);
             document.querySelector('.btn-skip').addEventListener('click', () => {
                 isConfirmingSkip = true;
                 renderScreen('confirm');

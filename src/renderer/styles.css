@@ -64,6 +64,7 @@
 .btn-extend,
 .btn-skip,
 .btn-start,
+.btn-start-break,
 .btn-take-break,
 .btn-confirm-skip {
     font-family: var(--font-ui);
@@ -104,6 +105,16 @@
     &:disabled {
         opacity: 0.3;
         cursor: not-allowed;
+    }
+}
+
+.btn-start-break {
+    color: var(--text);
+    border: 1px solid rgba(200, 200, 200, 0.2);
+
+    &:hover {
+        border-color: var(--accent-break);
+        color: var(--accent-break);
     }
 }
 
