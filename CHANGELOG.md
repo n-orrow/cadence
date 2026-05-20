@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.9.0] - 2026-05-20
+- feat: pause and resume, fix break start from grace period
+
+
 ## [0.8.0] - 2026-05-20
 - feat: grace period, skip confirmation and break flow
 

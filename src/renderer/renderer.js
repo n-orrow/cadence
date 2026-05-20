@@ -14,6 +14,7 @@ const DEV_MODE = true;
 
 let timeRemaining = FOCUS_DURATION;
 let isRunning = false;
+let isPaused = false;
 let isBreak = false;
 let isGrace = false;
 let isConfirmingSkip = false;
@@ -53,7 +54,7 @@ function renderScreen(screen) {
                 renderScreen('confirm');
             });
         } else {
-            controls.innerHTML = `<button class="btn-start">${isRunning ? 'Pause' : 'Start'}</button>`;
+            controls.innerHTML = `<button class="btn-start">${isRunning ? 'Pause' : isPaused ? 'Resume' : 'Start'}</button>`;
             const btn = document.querySelector('.btn-start');
             btn.classList.toggle('break', isBreak);
             btn.addEventListener('click', () => {
@@ -98,7 +99,8 @@ function tickUpdate() {
 
 function startTimer() {
     isRunning = true;
-    if (DEV_MODE) timeRemaining = 10;
+    if (DEV_MODE && !isPaused && timeRemaining === FOCUS_DURATION) timeRemaining = 10;
+    isPaused = false;
     renderScreen('timer');
 
     interval = setInterval(() => {
@@ -115,6 +117,7 @@ function startTimer() {
 
 function pauseTimer() {
     isRunning = false;
+    isPaused = true;
     clearInterval(interval);
     renderScreen('timer');
 }
@@ -173,6 +176,7 @@ function startBreak() {
     isBreak = true;
     isConfirmingSkip = false;
     isRunning = true;
+    isPaused = false;
     timeRemaining = DEV_MODE ? 10 : BREAK_DURATION;
     renderScreen('timer');
 
@@ -184,6 +188,7 @@ function startBreak() {
             clearInterval(interval);
             isBreak = false;
             isRunning = false;
+            isPaused = false;
             timeRemaining = FOCUS_DURATION;
             renderScreen('timer');
         }
