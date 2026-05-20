@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.0] - 2026-05-20
+- feat: grace period three-button layout
+
+
 ## [0.9.0] - 2026-05-20
 - feat: pause and resume, fix break start from grace period
 
