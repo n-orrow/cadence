@@ -26,6 +26,7 @@ function createWindow() {
         x,
         y,
         icon: path.join(__dirname, '../../assets/tray-icon.png'),
+        menuBarVisible: false,
         alwaysOnTop: true,
         resizable: false,
         skipTaskbar: true,
@@ -36,6 +37,7 @@ function createWindow() {
         }
     });
 
+    mainWindow.setMenuBarVisibility(false);
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
