@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.0] - 2026-05-20
+- feat: timer logic, phase switching and dynamic button states
+
+
 ## [0.6.0] - 2026-05-20
 - feat: timer UI layout and base styles
 
