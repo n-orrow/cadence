@@ -30,3 +30,54 @@
     color: var(--text);
     padding: 16px;
 }
+
+.timer-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+}
+
+.phase-label {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--accent-focus);
+}
+
+.timer {
+    font-family: var(--font-timer);
+    font-size: 72px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -2px;
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-start {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(200, 200, 200, 0.2);
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 200ms ease, color 200ms ease;
+
+    &:hover {
+        border-color: var(--accent-focus);
+        color: var(--accent-focus);
+    }
+}
