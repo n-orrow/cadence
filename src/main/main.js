@@ -47,6 +47,11 @@ function createWindow() {
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
     });
+
+    mainWindow.on('close', (e) => {
+        e.preventDefault();
+        mainWindow.hide();
+    });
 }
 
 function createTray() {
