@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.0] - 2026-05-20
+- feat: timer UI layout and base styles
+
+
 ## [0.5.0] - 2026-05-20
 - feat: timer UI layout and base styles
 
