@@ -1,3 +1,20 @@
+:root {
+    /*  COLOURS  */
+    --cadence:        #1f1f1f;
+    --text:           rgba(200, 200, 200, 0.8);
+    --accent-focus:   #c0392b;
+    --accent-break:   #2ecc71;
+    --accent-orange:  #e05c2a;
+    --accent-cyan:    #4fc3f7;
+    --accent-purple:  #7c83fd;
+    --accent-amber:   #f1c40f;
+
+    /*  TYPOGRAPHY  */
+    --font-ui:        'Inter', Arial, sans-serif;
+    --font-timer:     'JetBrains Mono', monospace;
+
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -7,9 +24,9 @@
 .app {
     width: 100vw;
     height: 100vh;
-    background: rgb(26 26 46 / 0.95);
+    background: var(--cadence);
     overflow: hidden;
-    font-family: Arial, sans-serif;
-    color: white;
+    font-family: var(--font-ui);
+    color: var(--text);
     padding: 16px;
 }

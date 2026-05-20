@@ -25,6 +25,7 @@ function createWindow() {
         height: windowHeight,
         x,
         y,
+        icon: path.join(__dirname, '../../assets/tray-icon.png'),
         alwaysOnTop: true,
         resizable: false,
         skipTaskbar: true,
