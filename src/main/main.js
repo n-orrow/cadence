@@ -1,6 +1,7 @@
 const { app, BrowserWindow, screen, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
+const DEV_MODE = false;
 
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('no-sandbox');
@@ -39,7 +40,9 @@ function createWindow() {
 
     mainWindow.setMenuBarVisibility(false);
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    if (DEV_MODE) {
+        mainWindow.webContents.openDevTools({ mode: 'detach' });
+    }
     mainWindow.setAlwaysOnTop(true, 'screen-saver');
 
     mainWindow.on('moved', () => {
