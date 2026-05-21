@@ -6,6 +6,10 @@ const phaseLabel = document.querySelector('.phase-label');
 const controls = document.querySelector('.controls');
 const graceContainer = document.querySelector('.grace-container');
 const app = document.querySelector('.app');
+const settingsBtn = document.querySelector('.settings-btn');
+const settingsScreen = document.querySelector('.settings-screen');
+const settingsHome = document.querySelector('.settings-home');
+const settingsSubpage = document.querySelector('.settings-subpage');
 
 const FOCUS_DURATION = 45 * 60;
 const BREAK_DURATION = 15 * 60;
@@ -269,6 +273,47 @@ function startBreak() {
         }
     }, 1000);
 }
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+
+function openSettings() {
+    timerScreen.style.display = 'none';
+    graceContainer.innerHTML = '';
+    settingsScreen.style.display = 'flex';
+    settingsHome.style.display = 'block';
+    settingsSubpage.style.display = 'none';
+}
+
+function closeSettings() {
+    settingsScreen.style.display = 'none';
+    renderScreen('timer');
+}
+
+function openSubpage(page) {
+    settingsHome.style.display = 'none';
+    settingsSubpage.style.display = 'flex';
+    settingsSubpage.innerHTML = `
+        <button class="settings-back">← Back</button>
+        <p class="settings-subpage-title">${page}</p>
+        <p style="color: rgba(200,200,200,0.3); font-size: 0.8rem;">Coming soon.</p>
+    `;
+    document.querySelector('.settings-back').addEventListener('click', () => {
+        settingsSubpage.style.display = 'none';
+        settingsHome.style.display = 'block';
+    });
+}
+
+settingsBtn.addEventListener('click', () => {
+    if (settingsScreen.style.display === 'none' || settingsScreen.style.display === '') {
+        openSettings();
+    } else {
+        closeSettings();
+    }
+});
+
+document.querySelectorAll('.settings-nav__item').forEach(item => {
+    item.addEventListener('click', () => openSubpage(item.dataset.page));
+});
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderScreen('timer');

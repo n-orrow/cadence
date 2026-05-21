@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.4] - 2026-05-21
+- patch: added simple inset shadow to window
+
+
 ## [0.10.3] - 2026-05-21
 - patch: added simple inset shadow to window
 
