@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.10.1] - 2026-05-21
+- chore: add tasks list
+
+
 ## [0.10.0] - 2026-05-20
 - feat: grace period three-button layout
 
