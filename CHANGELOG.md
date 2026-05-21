@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.13.0] - 2026-05-21
+- feat: template-aware timer, phase indicator and workday sequencing
+
+
 ## [0.12.0] - 2026-05-21
 - feat: workday builder with persistence, deletion and split rules
 
