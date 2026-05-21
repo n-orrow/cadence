@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.0] - 2026-05-21
+- release: v1.0.0
+
+
 ## [0.13.0] - 2026-05-21
 - feat: template-aware timer, phase indicator and workday sequencing
 
