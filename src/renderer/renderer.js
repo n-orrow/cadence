@@ -1,33 +1,102 @@
-const {ipcRenderer} = require('electron');
+const { ipcRenderer } = require('electron');
 
 const timerScreen = document.querySelector('.timer-screen');
 const timerDisplay = document.querySelector('.timer');
 const phaseLabel = document.querySelector('.phase-label');
 const controls = document.querySelector('.controls');
 const graceContainer = document.querySelector('.grace-container');
+const app = document.querySelector('.app');
 
 const FOCUS_DURATION = 45 * 60;
 const BREAK_DURATION = 15 * 60;
 const GRACE_DURATION = 30;
+const SOFT_START_DURATION = 300;       // 5 minutes
+const WIND_DOWN_DURATION = 300;        // 5 minutes
+const SOFT_START_HOLD = 210;           // hold before fading back to black
+const WIND_DOWN_TRANSITION_START = 210; // hold before transitioning to next colour
 
 const DEV_MODE = true;
 
 let timeRemaining = FOCUS_DURATION;
 let isRunning = false;
-let isPaused = false;
 let isBreak = false;
 let isGrace = false;
 let isConfirmingSkip = false;
+let isPaused = false;
 let graceRemaining = GRACE_DURATION;
 let hasExtended = false;
 let interval = null;
 let currentScreen = null;
+let isFirstFocus = true;
+let shadowTimers = [];
+
+// ─── SHADOW ──────────────────────────────────────────────────────────────────
+
+function setShadowClass(shadowClass) {
+    app.classList.remove('shadow-red', 'shadow-green', 'shadow-amber', 'shadow-black');
+    app.classList.add(shadowClass);
+}
+
+function clearShadowTimers() {
+    shadowTimers.forEach(t => clearTimeout(t));
+    shadowTimers = [];
+}
+
+function startFocusShadowSequence(totalSeconds) {
+    clearShadowTimers();
+
+    if (isFirstFocus) {
+        // cold start - transition from black to red
+        setShadowClass('shadow-red');
+        isFirstFocus = false;
+    }
+    // already red from break wind-down on subsequent cycles, so just hold
+
+    // at 210s fade red back to black
+    shadowTimers.push(setTimeout(() => {
+        setShadowClass('shadow-black');
+    }, SOFT_START_HOLD * 1000));
+
+    // at (totalSeconds - 90)s fade black to green
+    const windDownTransitionAt = (totalSeconds - 90) * 1000;
+    shadowTimers.push(setTimeout(() => {
+        setShadowClass('shadow-green');
+    }, windDownTransitionAt));
+}
+
+function startGraceShadowSequence() {
+    clearShadowTimers();
+    // green to amber over 5s (handled by CSS transition)
+    setShadowClass('shadow-amber');
+}
+
+function startBreakShadowSequence(totalSeconds) {
+    clearShadowTimers();
+
+    // amber to green over 5s (handled by CSS transition)
+    setShadowClass('shadow-green');
+
+    // at 210s fade green back to black
+    shadowTimers.push(setTimeout(() => {
+        setShadowClass('shadow-black');
+    }, SOFT_START_HOLD * 1000));
+
+    // at (totalSeconds - 90)s fade black to red
+    const windDownTransitionAt = (totalSeconds - 90) * 1000;
+    shadowTimers.push(setTimeout(() => {
+        setShadowClass('shadow-red');
+    }, windDownTransitionAt));
+}
+
+// ─── FORMATTING ──────────────────────────────────────────────────────────────
 
 function formatTime(seconds) {
     const m = Math.floor(seconds / 60).toString().padStart(2, '0');
     const s = (seconds % 60).toString().padStart(2, '0');
     return `${m}:${s}`;
 }
+
+// ─── SCREENS ─────────────────────────────────────────────────────────────────
 
 function renderScreen(screen) {
     currentScreen = screen;
@@ -64,6 +133,7 @@ function renderScreen(screen) {
                 else startTimer();
             });
         }
+
     } else if (screen === 'confirm') {
         timerScreen.style.display = 'none';
         graceContainer.innerHTML = `
@@ -98,6 +168,8 @@ function tickUpdate() {
         if (timerEl) timerEl.textContent = formatTime(graceRemaining);
     }
 }
+
+// ─── TIMER CONTROLS ──────────────────────────────────────────────────────────
 
 function startTimer() {
     isRunning = true;
@@ -167,6 +239,7 @@ function skipBreak() {
     isGrace = false;
     isBreak = false;
     isConfirmingSkip = false;
+    isPaused = false;
     hasExtended = false;
     timeRemaining = FOCUS_DURATION;
     startTimer();
@@ -197,4 +270,5 @@ function startBreak() {
     }, 1000);
 }
 
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 renderScreen('timer');
