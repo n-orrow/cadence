@@ -1,3 +1,5 @@
+> ⚠️ **Early development.** Cadence is not yet functional. Most features described in this readme are not yet built. Watch the repo if you want to follow along.
+
 # Cadence
 
 > Work in rhythm, not willpower.
