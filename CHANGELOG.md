@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.12.0] - 2026-05-21
+- feat: workday builder with persistence, deletion and split rules
+
+
 ## [0.11.0] - 2026-05-21
 - feat: settings screen shell and navigation
 
