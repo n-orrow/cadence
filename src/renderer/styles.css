@@ -20,12 +20,18 @@
     --font-timer:    'JetBrains Mono', monospace;
 }
 
+/*  RESETS */
 * {
     margin:     0;
     padding:    0;
     box-sizing: border-box;
 }
 
+:focus-visible {
+    outline: none;
+}
+
+/* APP */
 .app {
     width:       100vw;
     height:      100vh;
@@ -164,7 +170,6 @@
     flex-direction:  column;
     align-items:     center;
     justify-content: center;
-    height:          100%;
     width:           100%;
 }
 
@@ -225,85 +230,104 @@
     margin-top: 1.5rem;
 }
 
+.window-controls {
+    position:    absolute;
+    top:         0.75rem;
+    right:       0.75rem;
+    display:     flex;
+    align-items: center;
+    gap:         0.5rem;
+}
+
+.back-btn,
 .settings-btn {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    background: transparent;
-    border: none;
-    color: rgba(200, 200, 200, 0.3);
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: color 200ms ease;
+    background:  transparent;
+    border:      none;
+    color:       rgba(200, 200, 200, 0.3);
+    font-size:   1.1rem;
+    cursor:      pointer;
+    transition:  color 200ms ease;
     line-height: 1;
-    padding: 0.25rem;
+    padding:     0.25rem;
 
     &:hover {
         color: var(--text);
     }
 }
 
+.back-btn {
+    font-weight: bolder;
+
+    &.hidden {
+        display: none;
+    }
+}
+
+.settings-btn.active {
+    color: var(--accent-focus);
+}
+
 .settings-screen {
-    height: 100%;
-    display: flex;
+    height:         100%;
+    display:        flex;
     flex-direction: column;
-    padding: 1rem;
+    padding:        1rem;
 }
 
 .settings-title {
-    font-family: var(--font-ui);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-family:    var(--font-ui);
+    font-size:      0.75rem;
+    font-weight:    600;
     letter-spacing: 0.2rem;
     text-transform: uppercase;
-    color: rgba(200, 200, 200, 0.4);
-    margin-bottom: 1.5rem;
+    color:          rgba(200, 200, 200, 0.4);
+    margin-bottom:  1.5rem;
 }
 
 .settings-nav {
-    display: flex;
+    display:        flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap:            0.25rem;
 }
 
 .settings-nav__item {
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-family: var(--font-ui);
-    font-size: 1rem;
-    font-weight: 500;
-    text-align: left;
-    padding: 0.75rem 1rem;
+    background:    transparent;
+    border:        none;
+    color:         var(--text);
+    font-family:   var(--font-ui);
+    font-size:     1rem;
+    font-weight:   500;
+    text-align:    left;
+    padding:       0.75rem 1rem;
     border-radius: 0.25rem;
-    cursor: pointer;
-    transition: background 200ms ease, color 200ms ease;
+    cursor:        pointer;
+    transition:    background 200ms ease, color 200ms ease;
 
     &:hover {
         background: rgba(200, 200, 200, 0.05);
-        color: rgba(200, 200, 200, 1);
+        color:      rgba(200, 200, 200, 1);
     }
 }
 
 .settings-subpage {
-    height: 100%;
-    display: flex;
+    height:         100%;
+    display:        flex;
     flex-direction: column;
 }
 
 .settings-back {
-    background: transparent;
-    border: none;
-    color: rgba(200, 200, 200, 0.4);
-    font-family: var(--font-ui);
-    font-size: 0.75rem;
-    font-weight: 600;
+    background:     transparent;
+    border:         none;
+    color:          rgba(200, 200, 200, 0.4);
+    font-family:    var(--font-ui);
+    font-size:      0.75rem;
+    font-weight:    600;
     letter-spacing: 0.15rem;
     text-transform: uppercase;
-    cursor: pointer;
-    text-align: left;
-    padding: 0 0 1.5rem 0;
-    transition: color 200ms ease;
+    cursor:         pointer;
+    text-align:     left;
+    padding:        0 0 1.5rem 0;
+    transition:     color 200ms ease;
 
     &:hover {
         color: var(--text);
@@ -311,11 +335,13 @@
 }
 
 .settings-subpage-title {
-    font-family: var(--font-ui);
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-family:    var(--font-ui);
+    font-size:      0.75rem;
+    font-weight:    600;
     letter-spacing: 0.2rem;
     text-transform: uppercase;
-    color: rgba(200, 200, 200, 0.4);
-    margin-bottom: 1.5rem;
+    color:          rgba(200, 200, 200, 0.4);
+    margin-bottom:  1.5rem;
+}
+
 }

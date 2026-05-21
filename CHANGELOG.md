@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.11.0] - 2026-05-21
+- feat: settings screen shell and navigation
+
+
 ## [0.10.4] - 2026-05-21
 - patch: added simple inset shadow to window
 

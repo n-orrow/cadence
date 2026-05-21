@@ -6,6 +6,7 @@ const phaseLabel = document.querySelector('.phase-label');
 const controls = document.querySelector('.controls');
 const graceContainer = document.querySelector('.grace-container');
 const app = document.querySelector('.app');
+const backBtn = document.querySelector('.back-btn');
 const settingsBtn = document.querySelector('.settings-btn');
 const settingsScreen = document.querySelector('.settings-screen');
 const settingsHome = document.querySelector('.settings-home');
@@ -282,10 +283,16 @@ function openSettings() {
     settingsScreen.style.display = 'flex';
     settingsHome.style.display = 'block';
     settingsSubpage.style.display = 'none';
+    settingsBtn.classList.add('active');
+    settingsBtn.innerHTML = '&#10005;';
+    backBtn.classList.add('hidden');
 }
 
 function closeSettings() {
     settingsScreen.style.display = 'none';
+    settingsBtn.classList.remove('active');
+    settingsBtn.innerHTML = '&#9881;';
+    backBtn.classList.add('hidden');
     renderScreen('timer');
 }
 
@@ -293,15 +300,17 @@ function openSubpage(page) {
     settingsHome.style.display = 'none';
     settingsSubpage.style.display = 'flex';
     settingsSubpage.innerHTML = `
-        <button class="settings-back">← Back</button>
         <p class="settings-subpage-title">${page}</p>
         <p style="color: rgba(200,200,200,0.3); font-size: 0.8rem;">Coming soon.</p>
     `;
-    document.querySelector('.settings-back').addEventListener('click', () => {
-        settingsSubpage.style.display = 'none';
-        settingsHome.style.display = 'block';
-    });
+    backBtn.classList.remove('hidden');
 }
+
+backBtn.addEventListener('click', () => {
+    settingsSubpage.style.display = 'none';
+    settingsHome.style.display = 'block';
+    backBtn.classList.add('hidden');
+});
 
 settingsBtn.addEventListener('click', () => {
     if (settingsScreen.style.display === 'none' || settingsScreen.style.display === '') {
