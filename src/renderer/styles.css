@@ -751,3 +751,49 @@
         }
     }
 }
+
+/*  RESUME BUTTONS  */
+.btn-resume-time,
+.btn-resume-next,
+.btn-resume-fresh {
+    border-radius:  0.25rem;
+    padding:        0.5rem 1.5rem;
+    background:     transparent;
+    cursor:         pointer;
+    transition:     border-color 200ms ease, color 200ms ease;
+    letter-spacing: 0.15rem;
+    font-family:    var(--font-ui);
+    font-size:      0.8rem;
+    font-weight:    500;
+    text-transform: uppercase;
+}
+
+.btn-resume-time {
+    border: 1px solid rgba(200, 200, 200, 0.2);
+    color:  var(--text);
+
+    &:hover {
+        border-color: var(--accent-break);
+        color:        var(--accent-break);
+    }
+}
+
+.btn-resume-next {
+    border: 1px solid rgba(200, 200, 200, 0.2);
+    color:  var(--text);
+
+    &:hover {
+        border-color: var(--accent-cyan);
+        color:        var(--accent-cyan);
+    }
+}
+
+.btn-resume-fresh {
+    border: 1px solid rgba(200, 200, 200, 0.2);
+    color:  var(--text);
+
+    &:hover {
+        border-color: var(--accent-focus);
+        color:        var(--accent-focus);
+    }
+}

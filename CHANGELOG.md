@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.0] - 2026-06-02
+- feat: session resume with time subtraction
+
+
 ## [1.3.0] - 2026-06-02
 - feat: splash screen and dynamic window title bar icon
 

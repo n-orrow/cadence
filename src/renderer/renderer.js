@@ -1,28 +1,28 @@
-const {ipcRenderer} = require('electron');
+const { ipcRenderer } = require('electron');
 const Store = require('electron-store');
 
 const store = new Store();
 
 // ─── ELEMENT REFERENCES ───────────────────────────────────────────────────────
 
-const timerScreen = document.querySelector('.timer-screen');
-const timerDisplay = document.querySelector('.timer');
-const phaseLabel = document.querySelector('.phase-label');
-const controls = document.querySelector('.controls');
-const graceContainer = document.querySelector('.grace-container');
-const app = document.querySelector('.app');
-const settingsBtn = document.querySelector('.settings-btn');
-const backBtn = document.querySelector('.back-btn');
-const settingsScreen = document.querySelector('.settings-screen');
-const settingsHome = document.querySelector('.settings-home');
+const timerScreen     = document.querySelector('.timer-screen');
+const timerDisplay    = document.querySelector('.timer');
+const phaseLabel      = document.querySelector('.phase-label');
+const controls        = document.querySelector('.controls');
+const graceContainer  = document.querySelector('.grace-container');
+const app             = document.querySelector('.app');
+const settingsBtn     = document.querySelector('.settings-btn');
+const backBtn         = document.querySelector('.back-btn');
+const settingsScreen  = document.querySelector('.settings-screen');
+const settingsHome    = document.querySelector('.settings-home');
 const settingsSubpage = document.querySelector('.settings-subpage');
-const phaseIndicator = document.querySelector('.phase-indicator');
+const phaseIndicator  = document.querySelector('.phase-indicator');
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
-const FOCUS_DURATION = 45 * 60;
-const BREAK_DURATION = 15 * 60;
-const GRACE_DURATION = 30;
+const FOCUS_DURATION  = 45 * 60;
+const BREAK_DURATION  = 15 * 60;
+const GRACE_DURATION  = 30;
 const SOFT_START_HOLD = 210;
 
 const DEV_MODE = false;
@@ -39,48 +39,49 @@ const SPACE_WORDS = [
 ];
 
 const SPLITS_STANDARD = [
-    {focus: 40, break: 20},
-    {focus: 45, break: 15},
-    {focus: 50, break: 10},
-    {focus: 60, break: 0},
+    { focus: 40, break: 20 },
+    { focus: 45, break: 15 },
+    { focus: 50, break: 10 },
+    { focus: 60, break: 0  },
 ];
 
 const SPLITS_POST_HOUR = [
-    {focus: 0, break: 60},
-    {focus: 30, break: 30},
-    {focus: 40, break: 20},
-    {focus: 45, break: 15},
-    {focus: 50, break: 10},
-    {focus: 60, break: 0},
+    { focus: 0,  break: 60 },
+    { focus: 30, break: 30 },
+    { focus: 40, break: 20 },
+    { focus: 45, break: 15 },
+    { focus: 50, break: 10 },
+    { focus: 60, break: 0  },
 ];
 
 // ─── TIMER STATE ──────────────────────────────────────────────────────────────
 
-let timeRemaining = FOCUS_DURATION;
-let isRunning = false;
-let isBreak = false;
-let isGrace = false;
+let timeRemaining    = FOCUS_DURATION;
+let isRunning        = false;
+let isBreak          = false;
+let isGrace          = false;
 let isConfirmingSkip = false;
-let isPaused = false;
-let graceRemaining = GRACE_DURATION;
-let hasExtended = false;
-let interval = null;
-let currentScreen = null;
-let isFirstFocus = true;
-let shadowTimers = [];
+let isPaused         = false;
+let graceRemaining   = GRACE_DURATION;
+let hasExtended      = false;
+let interval         = null;
+let currentScreen    = null;
+let isFirstFocus     = true;
+let shadowTimers     = [];
+let tickCount        = 0;
 
 // ─── WORKDAY STATE ────────────────────────────────────────────────────────────
 
-let activeTemplate = null;
-let currentPhaseIdx = 0;
+let activeTemplate   = null;
+let currentPhaseIdx  = 0;
 let phaseTimeElapsed = 0;
 
 // ─── TEMPLATE STATE ───────────────────────────────────────────────────────────
 
-let templates = store.get('templates', []);
-let dayAssign = store.get('dayAssign', {Mon: null, Tue: null, Wed: null, Thu: null, Fri: null, Sat: null, Sun: null});
-let editingTemplate = null;
-let subpageStack = [];
+let templates        = store.get('templates', []);
+let dayAssign        = store.get('dayAssign', { Mon: null, Tue: null, Wed: null, Thu: null, Fri: null, Sat: null, Sun: null });
+let editingTemplate  = null;
+let subpageStack     = [];
 
 // ─── PERSISTENCE ──────────────────────────────────────────────────────────────
 
@@ -92,11 +93,26 @@ function saveDayAssign() {
     store.set('dayAssign', dayAssign);
 }
 
+function saveSession() {
+    store.set('session', {
+        timestamp:      Date.now(),
+        templateId:     activeTemplate ? activeTemplate.id : null,
+        phaseIdx:       currentPhaseIdx,
+        timeRemaining:  timeRemaining,
+        isBreak:        isBreak,
+        graceRemaining: isGrace ? graceRemaining : null,
+    });
+}
+
+function clearSession() {
+    store.delete('session');
+}
+
 // ─── ACTIVE TEMPLATE ──────────────────────────────────────────────────────────
 
 function getActiveTemplate() {
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const today = dayNames[new Date().getDay()];
+    const today    = dayNames[new Date().getDay()];
     const assigned = dayAssign[today];
 
     if (!assigned || assigned === 'off') return null;
@@ -104,30 +120,30 @@ function getActiveTemplate() {
 }
 
 function getCurrentPhaseSplit() {
-    if (!activeTemplate) return {focus: 45, break: 15};
-    const phase = activeTemplate.phases[currentPhaseIdx];
-    if (!phase) return {focus: 45, break: 15};
+    if (!activeTemplate) return { focus: 45, break: 15 };
+    const phase  = activeTemplate.phases[currentPhaseIdx];
+    if (!phase) return { focus: 45, break: 15 };
     const splits = getBuilderSplitsForPhase(currentPhaseIdx, activeTemplate.phases);
     return splits[Math.min(phase.splitIndex, splits.length - 1)];
 }
 
 function getPhaseDuration(phaseIdx) {
     if (!activeTemplate) return 60 * 60;
-    const phase = activeTemplate.phases[phaseIdx];
+    const phase  = activeTemplate.phases[phaseIdx];
     if (!phase) return 60 * 60;
     const splits = getBuilderSplitsForPhase(phaseIdx, activeTemplate.phases);
-    const split = splits[Math.min(phase.splitIndex, splits.length - 1)];
+    const split  = splits[Math.min(phase.splitIndex, splits.length - 1)];
     return (split.focus + split.break) * 60;
 }
 
 function getBuilderSplitsForPhase(index, phases) {
     if (index === 0) return SPLITS_STANDARD;
 
-    const isEarlyInDay = index < 2;
-    const isNearEnd = index >= phases.length - 2 && phases.length >= 7;
-    const inLunchWindow = index >= 3 && index <= 4;
-    const prev = phases[index - 1];
-    const prevSplit = prev ? getBuilderSplitsForPhase(index - 1, phases)[Math.min(prev.splitIndex, SPLITS_STANDARD.length - 1)] : null;
+    const isEarlyInDay    = index < 2;
+    const isNearEnd       = index >= phases.length - 2 && phases.length >= 7;
+    const inLunchWindow   = index >= 3 && index <= 4;
+    const prev            = phases[index - 1];
+    const prevSplit       = prev ? getBuilderSplitsForPhase(index - 1, phases)[Math.min(prev.splitIndex, SPLITS_STANDARD.length - 1)] : null;
     const prevIsBreakOnly = prevSplit && prevSplit.break === 60;
 
     if (!isEarlyInDay && !isNearEnd && !(prevIsBreakOnly && !inLunchWindow)) {
@@ -143,7 +159,7 @@ function renderPhaseIndicator() {
     if (!activeTemplate || !phaseIndicator) return;
 
     const phases = activeTemplate.phases;
-    phaseIndicator.innerHTML = '';
+    phaseIndicator.innerHTML     = '';
     phaseIndicator.style.display = 'flex';
 
     phases.forEach((phase, index) => {
@@ -154,7 +170,7 @@ function renderPhaseIndicator() {
             div.classList.add('completed');
         } else if (index === currentPhaseIdx) {
             const totalSeconds = getPhaseDuration(index);
-            const progress = Math.min((phaseTimeElapsed / totalSeconds) * 100, 100);
+            const progress     = Math.min((phaseTimeElapsed / totalSeconds) * 100, 100);
             div.style.setProperty('--phase-progress', `${progress}%`);
 
             if (isBreak || isGrace) {
@@ -166,6 +182,12 @@ function renderPhaseIndicator() {
 
         phaseIndicator.appendChild(div);
     });
+}
+
+// ─── TRAY ─────────────────────────────────────────────────────────────────────
+
+function setTrayIcon(state) {
+    ipcRenderer.send('set-tray-icon', state);
 }
 
 // ─── SHADOW ───────────────────────────────────────────────────────────────────
@@ -228,15 +250,15 @@ function formatTime(seconds) {
 function renderScreen(screen) {
     currentScreen = screen;
 
-    graceContainer.innerHTML = '';
-    timerScreen.style.display = 'none';
+    graceContainer.innerHTML     = '';
+    timerScreen.style.display    = 'none';
     settingsScreen.style.display = 'none';
 
     if (screen === 'timer') {
         timerScreen.style.display = 'flex';
-        phaseLabel.textContent = isGrace ? 'WRAP UP' : isBreak ? 'BREAK' : 'FOCUS';
-        phaseLabel.style.color = isGrace ? 'var(--accent-amber)' : isBreak ? 'var(--accent-break)' : 'var(--accent-focus)';
-        timerDisplay.textContent = isGrace ? formatTime(graceRemaining) : formatTime(timeRemaining);
+        phaseLabel.textContent    = isGrace ? 'WRAP UP' : isBreak ? 'BREAK' : 'FOCUS';
+        phaseLabel.style.color    = isGrace ? 'var(--accent-amber)' : isBreak ? 'var(--accent-break)' : 'var(--accent-focus)';
+        timerDisplay.textContent  = isGrace ? formatTime(graceRemaining) : formatTime(timeRemaining);
 
         if (isGrace) {
             controls.innerHTML = `
@@ -266,7 +288,7 @@ function renderScreen(screen) {
 
     } else if (screen === 'confirm') {
         timerScreen.style.display = 'none';
-        graceContainer.innerHTML = `
+        graceContainer.innerHTML  = `
             <div class="grace-screen">
                 <div class="header">
                     <span class="label">WRAP UP</span>
@@ -292,6 +314,9 @@ function renderScreen(screen) {
 
 function tickUpdate() {
     phaseTimeElapsed++;
+    tickCount++;
+
+    if (tickCount % 10 === 0) saveSession();
 
     if (currentScreen === 'timer') {
         timerDisplay.textContent = isGrace ? formatTime(graceRemaining) : formatTime(timeRemaining);
@@ -317,13 +342,13 @@ function getBreakDuration() {
 }
 
 function startTimer() {
-    isRunning = true;
-    timeRemaining = getFocusDuration();
-    isPaused = false;
+    isRunning     = true;
+    timeRemaining = isPaused ? timeRemaining : getFocusDuration();
+    isPaused      = false;
     startFocusShadowSequence(timeRemaining);
-    renderScreen('timer');
-
     setTrayIcon('focus');
+    saveSession();
+    renderScreen('timer');
 
     interval = setInterval(() => {
         timeRemaining--;
@@ -335,7 +360,6 @@ function startTimer() {
 
             const split = getCurrentPhaseSplit();
             if (split.break === 0) {
-                // 60:0 phase - no grace, no break, advance directly
                 advancePhase();
             } else {
                 startGrace();
@@ -346,22 +370,23 @@ function startTimer() {
 
 function pauseTimer() {
     isRunning = false;
-    isPaused = true;
+    isPaused  = true;
     clearInterval(interval);
     clearShadowTimers();
-    renderScreen('timer');
     setTrayIcon('idle');
+    saveSession();
+    renderScreen('timer');
 }
 
 function startGrace() {
-    isGrace = true;
+    isGrace          = true;
     isConfirmingSkip = false;
-    graceRemaining = GRACE_DURATION;
-    hasExtended = false;
+    graceRemaining   = GRACE_DURATION;
+    hasExtended      = false;
     startGraceShadowSequence();
-    renderScreen('timer');
-
     setTrayIcon('focus');
+    saveSession();
+    renderScreen('timer');
 
     interval = setInterval(() => {
         graceRemaining--;
@@ -376,12 +401,13 @@ function startGrace() {
 }
 
 function extendFocus() {
-    hasExtended = true;
+    hasExtended   = true;
     clearInterval(interval);
     clearShadowTimers();
-    isGrace = false;
-    isRunning = true;
+    isGrace       = false;
+    isRunning     = true;
     timeRemaining = DEV_MODE ? 10 : 5 * 60;
+    saveSession();
     renderScreen('timer');
 
     interval = setInterval(() => {
@@ -398,32 +424,31 @@ function extendFocus() {
 function skipBreak() {
     clearInterval(interval);
     clearShadowTimers();
-    isGrace = false;
-    isBreak = false;
+    isGrace          = false;
+    isBreak          = false;
     isConfirmingSkip = false;
-    isPaused = false;
-    hasExtended = false;
+    isPaused         = false;
+    hasExtended      = false;
     advancePhase();
 }
 
 function startBreak() {
     clearInterval(interval);
     clearShadowTimers();
-    isGrace = false;
-    isBreak = true;
+    isGrace          = false;
+    isBreak          = true;
     isConfirmingSkip = false;
-    isRunning = true;
-    isPaused = false;
-    timeRemaining = getBreakDuration();
-
-    setTrayIcon('break');
+    isRunning        = true;
+    isPaused         = false;
+    timeRemaining    = isPaused ? timeRemaining : getBreakDuration();
 
     if (timeRemaining <= 0) {
-        // 0:60 break-only phase - go straight to break duration
         timeRemaining = DEV_MODE ? 10 : 60 * 60;
     }
 
     startBreakShadowSequence(timeRemaining);
+    setTrayIcon('break');
+    saveSession();
     renderScreen('timer');
 
     interval = setInterval(() => {
@@ -432,9 +457,9 @@ function startBreak() {
 
         if (timeRemaining <= 0) {
             clearInterval(interval);
-            isBreak = false;
+            isBreak   = false;
             isRunning = false;
-            isPaused = false;
+            isPaused  = false;
             advancePhase();
         }
     }, 1000);
@@ -442,23 +467,25 @@ function startBreak() {
 
 function advancePhase() {
     if (!activeTemplate) {
-        // no template - just reset to default
-        timeRemaining = FOCUS_DURATION;
+        timeRemaining    = FOCUS_DURATION;
         phaseTimeElapsed = 0;
-        renderScreen('timer');
+        clearSession();
         setTrayIcon('idle');
+        renderScreen('timer');
         return;
     }
 
     if (currentPhaseIdx < activeTemplate.phases.length - 1) {
         currentPhaseIdx++;
         phaseTimeElapsed = 0;
-        timeRemaining = getFocusDuration();
-        isBreak = false;
-        isGrace = false;
+        timeRemaining    = getFocusDuration();
+        isBreak          = false;
+        isGrace          = false;
+        saveSession();
         renderScreen('timer');
     } else {
-        // end of workday
+        clearSession();
+        setTrayIcon('idle');
         showWorkdaySummary();
     }
 }
@@ -466,13 +493,13 @@ function advancePhase() {
 function showWorkdaySummary() {
     clearInterval(interval);
     clearShadowTimers();
-    isRunning = false;
-    isBreak = false;
-    isGrace = false;
+    isRunning        = false;
+    isBreak          = false;
+    isGrace          = false;
     isConfirmingSkip = false;
 
-    timerScreen.style.display = 'none';
-    graceContainer.innerHTML = '';
+    timerScreen.style.display    = 'none';
+    graceContainer.innerHTML     = '';
     settingsScreen.style.display = 'none';
 
     graceContainer.innerHTML = `
@@ -489,29 +516,126 @@ function showWorkdaySummary() {
     `;
 
     document.querySelector('.btn-take-break').addEventListener('click', () => {
-        // add more phases - go to builder for active template
         openSettings();
         openSubpage('templates');
         openSubpage('builder', activeTemplate);
     });
 
     document.querySelector('.btn-confirm-skip').addEventListener('click', () => {
-        currentPhaseIdx = 0;
+        clearSession();
+        currentPhaseIdx  = 0;
         phaseTimeElapsed = 0;
-        timeRemaining = getFocusDuration();
+        timeRemaining    = getFocusDuration();
         renderScreen('timer');
     });
+}
+
+// ─── SESSION RESUME ───────────────────────────────────────────────────────────
+
+function checkSessionResume() {
+    const session   = store.get('session');
+    if (!session) return false;
+
+    const gap       = Date.now() - session.timestamp;
+    const thirtyMins = 30 * 60 * 1000;
+
+    if (gap > thirtyMins) {
+        store.delete('session');
+        return false;
+    }
+
+    return session;
+}
+
+function showResumePrompt(session) {
+    timerScreen.style.display    = 'none';
+    graceContainer.innerHTML     = '';
+    settingsScreen.style.display = 'none';
+
+    const gapMins = Math.floor((Date.now() - session.timestamp) / 60000);
+    const gapStr  = gapMins < 1 ? 'just now' : `${gapMins} minute${gapMins > 1 ? 's' : ''} ago`;
+
+    const template           = session.templateId ? templates.find(t => t.id === session.templateId) : null;
+    const hasWorkday         = template && template.phases.length > 0;
+    const nextPhaseAvailable = hasWorkday && session.phaseIdx < template.phases.length - 1;
+
+    graceContainer.innerHTML = `
+        <div class="grace-screen">
+            <div class="confirm">
+                <p class="heading">Welcome back.</p>
+                <p class="subtext">You were last active ${gapStr}.</p>
+                <div class="buttons">
+                    <button class="btn-resume-time">Resume</button>
+                    ${nextPhaseAvailable ? `<button class="btn-resume-next">Next phase</button>` : ''}
+                    <button class="btn-resume-fresh">Start fresh</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.querySelector('.btn-resume-time').addEventListener('click', () => {
+        resumeFromTime(session);
+    });
+
+    if (nextPhaseAvailable) {
+        document.querySelector('.btn-resume-next').addEventListener('click', () => {
+            resumeFromNextPhase(session);
+        });
+    }
+
+    document.querySelector('.btn-resume-fresh').addEventListener('click', () => {
+        clearSession();
+        activeTemplate   = getActiveTemplate();
+        currentPhaseIdx  = 0;
+        phaseTimeElapsed = 0;
+        timeRemaining    = getFocusDuration();
+        renderScreen('timer');
+    });
+}
+
+function resumeFromTime(session) {
+    clearSession();
+
+    activeTemplate   = session.templateId ? templates.find(t => t.id === session.templateId) : null;
+    currentPhaseIdx  = session.phaseIdx;
+    phaseTimeElapsed = 0;
+    isBreak          = session.isBreak;
+
+    const elapsed = Math.floor((Date.now() - session.timestamp) / 1000);
+    timeRemaining = Math.max(session.timeRemaining - elapsed, 0);
+
+    if (timeRemaining === 0) {
+        if (session.isBreak) {
+            advancePhase();
+        } else {
+            startGrace();
+        }
+    } else {
+        isPaused = true;
+        renderScreen('timer');
+    }
+}
+
+function resumeFromNextPhase(session) {
+    clearSession();
+    activeTemplate   = templates.find(t => t.id === session.templateId);
+    currentPhaseIdx  = session.phaseIdx + 1;
+    phaseTimeElapsed = 0;
+    isBreak          = false;
+    timeRemaining    = getFocusDuration();
+    isPaused         = false;
+    renderScreen('timer');
 }
 
 // ─── SETTINGS ─────────────────────────────────────────────────────────────────
 
 function openSettings() {
-    timerScreen.style.display = 'none';
-    graceContainer.innerHTML = '';
-    settingsScreen.style.display = 'flex';
-    settingsHome.style.display = 'block';
+    timerScreen.style.display     = 'none';
+    graceContainer.innerHTML      = '';
+    settingsScreen.style.display  = 'flex';
+    settingsHome.style.display    = 'block';
     settingsSubpage.style.display = 'none';
-    subpageStack = [];
+    subpageStack                  = [];
     settingsBtn.classList.add('active');
     settingsBtn.innerHTML = '&#10005;';
     backBtn.classList.add('hidden');
@@ -524,10 +648,9 @@ function closeSettings() {
     backBtn.classList.add('hidden');
     subpageStack = [];
 
-    // refresh active template in case it was edited
     activeTemplate = getActiveTemplate();
     if (activeTemplate) {
-        currentPhaseIdx = 0;
+        currentPhaseIdx  = 0;
         phaseTimeElapsed = 0;
     }
 
@@ -535,8 +658,8 @@ function closeSettings() {
 }
 
 function openSubpage(page, context = null) {
-    subpageStack.push({page, context});
-    settingsHome.style.display = 'none';
+    subpageStack.push({ page, context });
+    settingsHome.style.display    = 'none';
     settingsSubpage.style.display = 'flex';
     backBtn.classList.remove('hidden');
 
@@ -565,7 +688,7 @@ backBtn.addEventListener('click', () => {
 
     if (subpageStack.length === 0) {
         settingsSubpage.style.display = 'none';
-        settingsHome.style.display = 'block';
+        settingsHome.style.display    = 'block';
         backBtn.classList.add('hidden');
     } else {
         const prev = subpageStack[subpageStack.length - 1];
@@ -586,17 +709,17 @@ document.addEventListener('click', () => {
 
 function buildCustomSelect(day, currentValue) {
     const options = [
-        {value: 'none', label: 'No template', separator: false},
-        {value: 'off', label: 'Off', separator: false},
-        ...templates.map((t, i) => ({value: t.id, label: t.name, separator: i === 0}))
+        { value: 'none', label: 'No template', separator: false },
+        { value: 'off',  label: 'Off',          separator: false },
+        ...templates.map((t, i) => ({ value: t.id, label: t.name, separator: i === 0 }))
     ];
 
     const selected = options.find(o => o.value === (currentValue || 'none')) || options[0];
 
-    const el = document.createElement('div');
-    el.className = 'custom-select';
+    const el       = document.createElement('div');
+    el.className   = 'custom-select';
     el.dataset.day = day;
-    el.innerHTML = `
+    el.innerHTML   = `
         <div class="trigger">
             <span class="selected-label">${selected.label}</span>
             <span class="arrow">&#9660;</span>
@@ -622,7 +745,7 @@ function buildCustomSelect(day, currentValue) {
 
     el.querySelectorAll('.option').forEach(opt => {
         opt.addEventListener('click', () => {
-            const val = opt.dataset.value;
+            const val      = opt.dataset.value;
             dayAssign[day] = val === 'none' ? null : val;
             saveDayAssign();
             el.querySelector('.selected-label').textContent = opt.textContent.trim();
@@ -665,7 +788,7 @@ function renderTemplatesSubpage() {
 
     const dayAssignEl = document.querySelector('.day-assign');
     DAYS.forEach(day => {
-        const row = document.createElement('div');
+        const row     = document.createElement('div');
         row.className = 'day-row';
         row.innerHTML = `<span class="day-label">${day}</span>`;
         row.appendChild(buildCustomSelect(day, dayAssign[day]));
@@ -676,7 +799,7 @@ function renderTemplatesSubpage() {
         input.addEventListener('change', () => {
             const t = templates.find(t => t.id === input.dataset.id);
             if (t) {
-                t.name = input.value.trim() || randomSpaceWord();
+                t.name      = input.value.trim() || randomSpaceWord();
                 input.value = t.name;
                 saveTemplates();
             }
@@ -695,8 +818,8 @@ function renderTemplatesSubpage() {
             const t = templates.find(t => t.id === btn.dataset.id);
             if (t) {
                 const duped = {
-                    id: Date.now().toString(),
-                    name: `${t.name} copy`,
+                    id:     Date.now().toString(),
+                    name:   `${t.name} copy`,
                     phases: JSON.parse(JSON.stringify(t.phases))
                 };
                 templates.push(duped);
@@ -720,8 +843,8 @@ function renderTemplatesSubpage() {
 
     document.querySelector('.add-template-btn').addEventListener('click', () => {
         const newTemplate = {
-            id: Date.now().toString(),
-            name: randomSpaceWord(),
+            id:     Date.now().toString(),
+            name:   randomSpaceWord(),
             phases: []
         };
         templates.push(newTemplate);
@@ -744,7 +867,7 @@ function renderBuilderSubpage(template) {
 
     document.querySelector('.builder-name-input').addEventListener('change', (e) => {
         editingTemplate.name = e.target.value.trim() || randomSpaceWord();
-        e.target.value = editingTemplate.name;
+        e.target.value       = editingTemplate.name;
         saveTemplates();
     });
 
@@ -754,9 +877,9 @@ function renderBuilderSubpage(template) {
 // ─── PHASE BUILDER ────────────────────────────────────────────────────────────
 
 function randomSpaceWord() {
-    const used = (editingTemplate ? editingTemplate.phases : []).map(p => p.name);
+    const used      = (editingTemplate ? editingTemplate.phases : []).map(p => p.name);
     const available = SPACE_WORDS.filter(w => !used.includes(w));
-    const pool = available.length > 0 ? available : SPACE_WORDS;
+    const pool      = available.length > 0 ? available : SPACE_WORDS;
     return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -786,7 +909,7 @@ function revalidateFromIndex(startIndex) {
 
 function createPhase(overrides = {}) {
     return {
-        id: Date.now().toString(),
+        id:         Date.now().toString(),
         splitIndex: 1,
         ...overrides
     };
@@ -802,8 +925,8 @@ function renderPhaseBuilder() {
     });
 
     if (editingTemplate.phases.length < 12) {
-        const addBtn = document.createElement('button');
-        addBtn.className = 'phase-add-btn';
+        const addBtn       = document.createElement('button');
+        addBtn.className   = 'phase-add-btn';
         addBtn.textContent = '+ add phase';
         addBtn.addEventListener('click', addPhase);
         builder.appendChild(addBtn);
@@ -811,16 +934,16 @@ function renderPhaseBuilder() {
 }
 
 function createPhaseRow(phase, index) {
-    const row = document.createElement('div');
-    row.className = 'phase-row';
+    const row      = document.createElement('div');
+    row.className  = 'phase-row';
     row.dataset.id = phase.id;
 
-    const splits = getSplitsForPhase(index);
+    const splits    = getSplitsForPhase(index);
     clampSplitIndex(phase, splits);
 
-    const split = splits[phase.splitIndex];
-    const focusPct = split.focus === 0 ? 0 : (split.focus / 60) * 100;
-    const breakPct = split.break === 0 ? 0 : (split.break / 60) * 100;
+    const split     = splits[phase.splitIndex];
+    const focusPct  = split.focus === 0 ? 0 : (split.focus / 60) * 100;
+    const breakPct  = split.break === 0 ? 0 : (split.break / 60) * 100;
     const showFocus = split.focus > 0;
     const showBreak = split.break > 0;
 
@@ -863,12 +986,12 @@ function setupBarDrag(bar, phase, index) {
         const barRect = bar.getBoundingClientRect();
 
         const onMouseMove = (e) => {
-            const splits = getSplitsForPhase(index);
-            const x = e.clientX - barRect.left;
-            const pct = x / barRect.width;
+            const splits     = getSplitsForPhase(index);
+            const x          = e.clientX - barRect.left;
+            const pct        = x / barRect.width;
             const snapPoints = splits.map(s => s.focus / 60);
-            const distances = snapPoints.map(p => Math.abs(pct - p));
-            const nearest = distances.indexOf(Math.min(...distances));
+            const distances  = snapPoints.map(p => Math.abs(pct - p));
+            const nearest    = distances.indexOf(Math.min(...distances));
 
             if (phase.splitIndex !== nearest) {
                 phase.splitIndex = nearest;
@@ -900,24 +1023,26 @@ function addPhase() {
     saveTemplates();
     renderPhaseBuilder();
 
-    const builder = document.querySelector('.phase-builder');
+    const builder     = document.querySelector('.phase-builder');
     builder.scrollTop = builder.scrollHeight;
-}
-
-function setTrayIcon(state) {
-    console.log('setTrayIcon called:', state);
-    ipcRenderer.send('set-tray-icon', state);
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 
+const session = checkSessionResume();
+
 activeTemplate = getActiveTemplate();
 if (activeTemplate) {
-    currentPhaseIdx = 0;
+    currentPhaseIdx  = 0;
     phaseTimeElapsed = 0;
-    timeRemaining = getFocusDuration();
+    timeRemaining    = getFocusDuration();
 }
 
-setTimeout(() => setTrayIcon('idle'), 500);
+setTrayIcon('idle');
 setShadowClass('shadow-black');
-renderScreen('timer');
+
+if (session) {
+    showResumePrompt(session);
+} else {
+    renderScreen('timer');
+}
