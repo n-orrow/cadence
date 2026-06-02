@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.0] - 2026-06-02
+- feat: splash screen and dynamic window title bar icon
+
+
 ## [1.2.0] - 2026-06-02
 - feat: tray icon state switching
 

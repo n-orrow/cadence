@@ -1,7 +1,7 @@
 const { app, BrowserWindow, screen, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
-const DEV_MODE = true;
+const DEV_MODE = false;
 
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('no-sandbox');
@@ -83,8 +83,36 @@ function createTray() {
     });
 }
 
-app.whenReady().then(() => {
+function createSplash() {
+    return new Promise((resolve) => {
+        const { width, height } = screen.getPrimaryDisplay().bounds;
+        const splashSize = 180;
+
+        const splash = new BrowserWindow({
+            width:           splashSize,
+            height:          splashSize,
+            x:               Math.floor((width - splashSize) / 2),
+            y:               Math.floor((height - splashSize) / 2),
+            frame:           false,
+            transparent:     true,
+            alwaysOnTop:     true,
+            skipTaskbar:     true,
+            resizable:       false,
+            webPreferences:  { nodeIntegration: false }
+        });
+
+        splash.loadFile(path.join(__dirname, 'splash.html'));
+
+        setTimeout(() => {
+            splash.close();
+            resolve();
+        }, 2500);
+    });
+}
+
+app.whenReady().then(async () => {
     app.setAppUserModelId('dev.cadence.app');
+    await createSplash();
     createWindow();
     createTray();
 
@@ -98,7 +126,6 @@ app.whenReady().then(() => {
         tray.setImage(icon);
         mainWindow.setIcon(icon);
     });
-
 });
 
 app.on('window-all-closed', (e) => {
