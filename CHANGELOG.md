@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.0] - 2026-06-02
+- feat: tray settings menu opens settings window
+
+
 ## [1.4.0] - 2026-06-02
 - feat: session resume with time subtraction
 

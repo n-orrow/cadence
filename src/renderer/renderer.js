@@ -190,6 +190,11 @@ function setTrayIcon(state) {
     ipcRenderer.send('set-tray-icon', state);
 }
 
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+ipcRenderer.on('open-settings', () => {
+    openSettings();
+});
+
 // ─── SHADOW ───────────────────────────────────────────────────────────────────
 
 function setShadowClass(shadowClass) {

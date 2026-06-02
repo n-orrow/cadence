@@ -66,7 +66,10 @@ function createTray() {
     tray = new Tray(path.join(__dirname, '../../assets/c-_16px.png'));
 
     const contextMenu = Menu.buildFromTemplate([
-        { label: 'Settings', click: () => console.log('settings') },
+        { label: 'Settings', click: () => {
+                mainWindow.show();
+                mainWindow.webContents.send('open-settings');
+            }},
         { type: 'separator' },
         { label: 'Quit', click: () => app.quit() }
     ]);
