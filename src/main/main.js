@@ -1,7 +1,7 @@
 const { app, BrowserWindow, screen, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
-const DEV_MODE = false;
+const DEV_MODE = true;
 
 app.disableHardwareAcceleration();
 app.commandLine.appendSwitch('no-sandbox');
@@ -59,10 +59,11 @@ function createWindow() {
         e.preventDefault();
         mainWindow.hide();
     });
+
 }
 
 function createTray() {
-    tray = new Tray(path.join(__dirname, '../../assets/tray-icon.png'));
+    tray = new Tray(path.join(__dirname, '../../assets/c-_16px.png'));
 
     const contextMenu = Menu.buildFromTemplate([
         { label: 'Settings', click: () => console.log('settings') },
@@ -86,6 +87,19 @@ app.whenReady().then(() => {
     app.setAppUserModelId('dev.cadence.app');
     createWindow();
     createTray();
+
+    ipcMain.on('set-tray-icon', (event, state) => {
+        console.log('Tray icon state received:', state);
+        const icons = {
+            idle:  path.join(__dirname, '../../assets/c-_16px.png'),
+            focus: path.join(__dirname, '../../assets/c-focus_16px.png'),
+            break: path.join(__dirname, '../../assets/c-break_16px.png'),
+        };
+        const icon = icons[state] || icons.idle;
+        console.log('Setting tray icon to:', icon);
+        tray.setImage(icon);
+    });
+
 });
 
 app.on('window-all-closed', (e) => {
