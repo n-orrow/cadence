@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.0] - 2026-06-02
+- feat: tray icon state switching
+
+
 ## [1.1.0] - 2026-06-02
 - feat: tray icon state switching
 

@@ -89,15 +89,14 @@ app.whenReady().then(() => {
     createTray();
 
     ipcMain.on('set-tray-icon', (event, state) => {
-        console.log('Tray icon state received:', state);
         const icons = {
             idle:  path.join(__dirname, '../../assets/c-_16px.png'),
             focus: path.join(__dirname, '../../assets/c-focus_16px.png'),
             break: path.join(__dirname, '../../assets/c-break_16px.png'),
         };
         const icon = icons[state] || icons.idle;
-        console.log('Setting tray icon to:', icon);
         tray.setImage(icon);
+        mainWindow.setIcon(icon);
     });
 
 });
