@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.7.0] - 2026-06-05
+- feat: sidebar mode with timer sync
+
+
 ## [1.6.0] - 2026-06-05
 - feat: sidebar mode with timer sync
 
