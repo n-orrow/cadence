@@ -1,0 +1,45 @@
+/*  SIDEBAR OVERRIDES  */
+
+.app {
+    box-shadow: none;
+    padding:    0;
+}
+
+.timer-section {
+    flex:     0 0 auto;
+    overflow: visible;
+    padding:  3rem 1rem 1rem 1rem;
+}
+
+.timer-screen {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    justify-content: flex-start;
+    flex:            0 0 auto;
+    gap:             0.5rem;
+}
+
+.phase-indicator {
+    margin-top: 1rem;
+}
+
+.timer {
+    font-size: 3rem;
+}
+
+.controls {
+    flex-direction: column;
+    width:          100%;
+    margin-top:     0.25rem;
+    gap:            0.5rem;
+}
+
+.grace-container {
+    flex: 0 0 auto;
+}
+
+.todo-section {
+    border-top: 1px solid rgba(200, 200, 200, 0.08);
+    padding:    1rem;
+}

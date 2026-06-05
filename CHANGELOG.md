@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2026-06-05
+- feat: sidebar mode with timer sync
+
+
 ## [1.5.0] - 2026-06-02
 - feat: tray settings menu opens settings window
 

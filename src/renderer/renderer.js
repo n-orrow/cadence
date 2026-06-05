@@ -78,10 +78,10 @@ let phaseTimeElapsed = 0;
 
 // ─── TEMPLATE STATE ───────────────────────────────────────────────────────────
 
-let templates        = store.get('templates', []);
-let dayAssign        = store.get('dayAssign', { Mon: null, Tue: null, Wed: null, Thu: null, Fri: null, Sat: null, Sun: null });
-let editingTemplate  = null;
-let subpageStack     = [];
+let templates       = store.get('templates', []);
+let dayAssign       = store.get('dayAssign', { Mon: null, Tue: null, Wed: null, Thu: null, Fri: null, Sat: null, Sun: null });
+let editingTemplate = null;
+let subpageStack    = [];
 
 // ─── PERSISTENCE ──────────────────────────────────────────────────────────────
 
@@ -106,6 +106,24 @@ function saveSession() {
 
 function clearSession() {
     store.delete('session');
+}
+
+// ─── BROADCAST ────────────────────────────────────────────────────────────────
+
+function broadcastTimerState() {
+    ipcRenderer.send('timer-state', {
+        timeRemaining,
+        graceRemaining,
+        isRunning,
+        isBreak,
+        isGrace,
+        isPaused,
+        isConfirmingSkip,
+        hasExtended,
+        currentPhaseIdx,
+        phaseTimeElapsed,
+        activeTemplateId: activeTemplate ? activeTemplate.id : null,
+    });
 }
 
 // ─── ACTIVE TEMPLATE ──────────────────────────────────────────────────────────
@@ -172,12 +190,7 @@ function renderPhaseIndicator() {
             const totalSeconds = getPhaseDuration(index);
             const progress     = Math.min((phaseTimeElapsed / totalSeconds) * 100, 100);
             div.style.setProperty('--phase-progress', `${progress}%`);
-
-            if (isBreak || isGrace) {
-                div.classList.add('break');
-            } else {
-                div.classList.add('focus');
-            }
+            div.classList.add(isBreak || isGrace ? 'break' : 'focus');
         }
 
         phaseIndicator.appendChild(div);
@@ -189,11 +202,6 @@ function renderPhaseIndicator() {
 function setTrayIcon(state) {
     ipcRenderer.send('set-tray-icon', state);
 }
-
-// ─── SETTINGS ─────────────────────────────────────────────────────────────────
-ipcRenderer.on('open-settings', () => {
-    openSettings();
-});
 
 // ─── SHADOW ───────────────────────────────────────────────────────────────────
 
@@ -315,6 +323,8 @@ function renderScreen(screen) {
         });
         document.querySelector('.btn-confirm-skip').addEventListener('click', skipBreak);
     }
+
+    broadcastTimerState();
 }
 
 function tickUpdate() {
@@ -330,6 +340,8 @@ function tickUpdate() {
         const countdownEl = document.querySelector('.grace-screen .countdown');
         if (countdownEl) countdownEl.textContent = formatTime(graceRemaining);
     }
+
+    broadcastTimerState();
 }
 
 // ─── TIMER CONTROLS ───────────────────────────────────────────────────────────
@@ -538,10 +550,10 @@ function showWorkdaySummary() {
 // ─── SESSION RESUME ───────────────────────────────────────────────────────────
 
 function checkSessionResume() {
-    const session   = store.get('session');
+    const session    = store.get('session');
     if (!session) return false;
 
-    const gap       = Date.now() - session.timestamp;
+    const gap        = Date.now() - session.timestamp;
     const thirtyMins = 30 * 60 * 1000;
 
     if (gap > thirtyMins) {
@@ -653,13 +665,18 @@ function closeSettings() {
     backBtn.classList.add('hidden');
     subpageStack = [];
 
-    activeTemplate = getActiveTemplate();
-    if (activeTemplate) {
-        currentPhaseIdx  = 0;
-        phaseTimeElapsed = 0;
-    }
+    const sidebarEnabled = store.get('sidebarEnabled', false);
 
-    renderScreen('timer');
+    if (sidebarEnabled) {
+        mainWindow.hide();
+    } else {
+        activeTemplate = getActiveTemplate();
+        if (activeTemplate) {
+            currentPhaseIdx  = 0;
+            phaseTimeElapsed = 0;
+        }
+        renderScreen('timer');
+    }
 }
 
 function openSubpage(page, context = null) {
@@ -672,6 +689,8 @@ function openSubpage(page, context = null) {
         renderTemplatesSubpage();
     } else if (page === 'builder') {
         renderBuilderSubpage(context);
+    } else if (page === 'appearance') {
+        renderAppearanceSubpage();
     } else {
         settingsSubpage.innerHTML = `
             <p class="title">${page}</p>
@@ -708,6 +727,22 @@ document.querySelectorAll('.settings-nav .item').forEach(item => {
 
 document.addEventListener('click', () => {
     document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+});
+
+ipcRenderer.on('open-settings', () => {
+    openSettings();
+});
+
+ipcRenderer.on('sidebar-command', (event, command) => {
+    if (command === 'start')           startTimer();
+    else if (command === 'pause')      pauseTimer();
+    else if (command === 'skip')       skipBreak();
+    else if (command === 'extend')     extendFocus();
+    else if (command === 'startBreak') startBreak();
+    else if (command === 'skipConfirm') {
+        isConfirmingSkip = true;
+        renderScreen('confirm');
+    }
 });
 
 // ─── CUSTOM SELECT ────────────────────────────────────────────────────────────
@@ -855,6 +890,64 @@ function renderTemplatesSubpage() {
         templates.push(newTemplate);
         saveTemplates();
         openSubpage('builder', newTemplate);
+    });
+}
+
+// ─── APPEARANCE SUBPAGE ───────────────────────────────────────────────────────
+
+function renderAppearanceSubpage() {
+    const sidebarEnabled = store.get('sidebarEnabled', false);
+    const sidebarSide    = store.get('sidebarSide', 'left');
+
+    settingsSubpage.innerHTML = `
+        <p class="title">Appearance</p>
+        <div class="appearance-page">
+            <div class="setting-row">
+                <div class="setting-info">
+                    <p class="setting-label">Sidebar mode</p>
+                    <p class="setting-desc">Docks Cadence to the side of your screen.</p>
+                </div>
+                <button class="toggle-btn ${sidebarEnabled ? 'active' : ''}" data-setting="sidebar">
+                    ${sidebarEnabled ? 'On' : 'Off'}
+                </button>
+            </div>
+            <div class="setting-row ${!sidebarEnabled ? 'disabled' : ''}">
+                <div class="setting-info">
+                    <p class="setting-label">Position</p>
+                    <p class="setting-desc">Which side of the screen to dock to.</p>
+                </div>
+                <div class="side-picker">
+                    <button class="side-btn ${sidebarSide === 'left' ? 'active' : ''}" data-side="left">Left</button>
+                    <button class="side-btn ${sidebarSide === 'right' ? 'active' : ''}" data-side="right">Right</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.querySelector('.toggle-btn').addEventListener('click', (e) => {
+        const newState = !store.get('sidebarEnabled', false);
+        store.set('sidebarEnabled', newState);
+        e.target.textContent = newState ? 'On' : 'Off';
+        e.target.classList.toggle('active', newState);
+        document.querySelector('.setting-row:nth-child(2)').classList.toggle('disabled', !newState);
+
+        if (newState) {
+            closeSettings();
+        }
+
+        ipcRenderer.send('toggle-sidebar', { enabled: newState, side: store.get('sidebarSide', 'left') });
+    });
+
+    document.querySelectorAll('.side-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const side = btn.dataset.side;
+            store.set('sidebarSide', side);
+            document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (store.get('sidebarEnabled', false)) {
+                ipcRenderer.send('toggle-sidebar', { enabled: true, side });
+            }
+        });
     });
 }
 

@@ -8,12 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="sidebar.css">
 </head>
 <body class="app">
-    <div class="window-controls">
-        <button class="back-btn hidden">&#10094;</button>
-        <button class="settings-btn">&#9881;</button>
-    </div>
     <div class="timer-section">
         <div class="timer-screen">
             <div class="phase-label">FOCUS</div>
@@ -23,18 +20,9 @@
         <div class="grace-container"></div>
         <div class="phase-indicator" style="display:none;"></div>
     </div>
-    <div class="settings-screen" style="display:none;">
-        <div class="settings-home">
-            <nav class="settings-nav">
-                <p class="title">Settings</p>
-                <button class="item" data-page="templates">Templates</button>
-                <button class="item" data-page="appearance">Appearance</button>
-                <button class="item" data-page="notifications">Notifications</button>
-                <button class="item" data-page="integrations">Integrations</button>
-            </nav>
-        </div>
-        <div class="settings-subpage" style="display:none;"></div>
+    <div class="todo-section">
+        <p class="todo-placeholder">@todo coming soon</p>
     </div>
-    <script src="renderer.js"></script>
+    <script src="sidebar.js"></script>
 </body>
 </html>
